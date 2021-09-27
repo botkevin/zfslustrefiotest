@@ -181,4 +181,4 @@ if __name__ == "__main__":
     # TODO: change ip here
     ip = "192.168.169.207"
     # TODO: change skipnum
-    run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=3)
+    run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=0)
