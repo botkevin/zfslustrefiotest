@@ -1,0 +1,7 @@
+testname,numberdisks,raidmode,raid0,ashift,compression,recordsize,atime,filesize,runtime(s)
+onedisk,1,0,0,12,,32m,off,100g,200
+z2_one,8,5,0,12,,32m,off,500g,200
+z2_two,16,5,2,12,,32m,off,1000g,200
+z2_three,24,5,3,12,,32m,off,1500g,200
+z3_one,15,6,0,12,,32m,off,800g,200
+z3_two,30,6,2,12,,32m,off,1600g,200
