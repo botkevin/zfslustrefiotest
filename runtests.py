@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import csv
+import sys
 
 # STATICS
 RAID_CONFIGS = {
@@ -190,5 +191,11 @@ if __name__ == "__main__":
     csvfilename = "config.csv"
     # TODO: change ip here
     ip = "192.168.169.207"
-    # TODO: change skipnum
-    run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=6)
+
+    try:      
+        # TODO: change skipnum
+        run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=6)
+    except KeyboardInterrupt:
+        print("\nControl-C pressed - quitting...")
+        os.system("./clean.sh")
+        sys.exit(1)
