@@ -6,6 +6,7 @@ import csv
 RAID_CONFIGS = {
     5:"raidz",
     6:"raidz2",
+    7:"raidz3",
     0:"",
     1:"mirror"
 }
@@ -66,13 +67,19 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
     cmdstr += disksstr
     return cmdstr
 
-def make_fio_thruput(dir, testname, filesize, runtime, fs="zfs"):
-    # writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --runtime="+runtime+" --time_based --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
-    # readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --runtime="+runtime+" --time_based --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
-    writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
-    readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
-    rmcmd = "rm "+ dir +"/throughput-test.0.0"
-    return writecmd, readcmd, rmcmd
+# blocksizes, iodepths, and numjobs are just lists delimited by spaces ex: "1 2 3"
+def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
+    if benchmark == "True":
+        store_dir = testname+"_"+fs
+        cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 --target " + dir + " -o "+store_dir+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime
+        return [cmd]
+    else:
+        # writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --runtime="+runtime+" --time_based --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
+        # readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --runtime="+runtime+" --time_based --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
+        writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
+        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
+        rmcmd = "rm "+ dir +"/throughput-test.0.0"
+        return writecmd, readcmd, rmcmd
 
 # need to make sure that:
 # I don't know if this is needed? see 
@@ -126,7 +133,7 @@ def print_title(msg):
     line = "-------------------------------"
     print (" "+line, "\n  ", msg, "\n", line)
 
-def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, runtime):
+def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs):
     zfsdir = "/"+zfsname
     cmds = []
     cmds.append ("mkdir " + testname)
@@ -135,25 +142,28 @@ def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, comp
     cmds.extend (make_echo("make zfs"))
     cmds.append (make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime))
     
+    # arugments to make_fio_througput: dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"
     if not SKIP_ZFS_TESTS:
         # print_title ("test zfs")
         cmds.extend (make_echo("test zfs"))
-        cmds.extend (make_fio_thruput(zfsdir, testname, filesize, runtime, fs="zfs"))
+        cmds.extend (make_fio_thruput(zfsdir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"))
 
     # print_title ("make lustre")
     cmds.extend (make_echo("make lustre"))
     lustrecmds = make_lustre(zfsname, ip=ip)
     cmds.extend (lustrecmds)
 
-    cmds.extend (make_fio_thruput("/mnt/lustre", testname,filesize, runtime, fs="lustre"))
+    cmds.extend (make_echo("test lustre"))
+    cmds.extend (make_fio_thruput("/mnt/lustre", testname,filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="lustre"))
 
+    cmds.extend (make_echo("cleanup"))
     cmds.extend (clean(zfsname, ip=ip))
     return cmds
 
 # ---------------------------------------------------------------------------------------------------------------
 
-def run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, runtime):
-    cmds = make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, runtime)
+def run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs):
+    cmds = make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs)
     for cmd in cmds:
         # debug print
         print (cmd)
@@ -166,14 +176,14 @@ def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0):
         for _ in range(skip_num):
             next(reader)
         for row in reader:
-            testname, numberdisks, raidmode, raid0, ashift, compression, recordsize, atime, filesize, runtime = row
+            testname, numberdisks, raidmode, raid0, ashift, compression, recordsize, atime, filesize, benchmark, runtime, blocksizes, iodepths, numjobs = row
             print ("++++++++++++++++++++++++++++")
             print (testname)
             print ("++++++++++++++++++++++++++++")
             numberdisks = int(numberdisks)
             raidmode = int(raidmode)
             raid0 = int(raid0)
-            run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, runtime)
+            run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs)
 
 if __name__ == "__main__":
     # TODO: use run_all
@@ -181,4 +191,4 @@ if __name__ == "__main__":
     # TODO: change ip here
     ip = "192.168.169.207"
     # TODO: change skipnum
-    run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=0)
+    run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=6)
