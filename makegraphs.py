@@ -2,19 +2,21 @@ import os
 import csv
 
 csvfilename = "config.csv"
-skip_num = 0
+skip_num = 6
 
 def make_plot_cmd(rw, fs, bs, iodepths, numjobs, testname):
     if fs == "zfs":
         fsdir = 'lustre/lustre/'
     else:
         fsdir = 'zfs/tank/'
-    cmd = './fio-plot/fio_plot/fio_plot -T "bandwidth of '+ rw +' on ' + fs + ' ' + testname + ' '+bs+'m" -i z2_one_8_single_'+ fsdir +bs+'m -g -r '+rw+' -t bw -d '+ iodepths +' -n ' + numjobs
-    return cmd
+    title = 'bandwidth of '+ rw +' on ' + fs + ' ' + testname + ' '+bs
+    cmd = './fio-plot/fio_plot/fio_plot -T "' + title + '" -i z2_one_8_single_'+ fsdir +bs+' -g -r '+rw+' -t bw -d '+ iodepths +' -n ' + numjobs + '--disable-fio-version'
+    return cmd, title
 
 with open(csvfilename) as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
         next(reader)
+        cmds = []
         for _ in range(skip_num):
             next(reader)
         for row in reader:
@@ -22,9 +24,19 @@ with open(csvfilename) as csvfile:
             rws = ["read", "write"]
             fss = ["zfs", "lustre"]
             blocksizes = blocksizes.split()
-            os.system ("mkdir " + "graph_" + testname)
+            # print (blocksizes)
+            graphdir = "graph_" + testname
+            cmds.append ("mkdir " + graphdir)
             for bs in blocksizes:
-                os.system ("mkdir bs")
+                blockdir = graphdir +"/"+bs
+                cmds.append ("mkdir "+ blockdir)
                 for fs in fss:
                     for rw in rws:
-                        make_plot_cmd (rw, fs, bs, iodepths, numjobs, testname)
+                        plot_cmd, title = make_plot_cmd (rw, fs, bs, iodepths, numjobs, testname)
+                        title = title.replace(" ", "-")
+                        cmds.append (plot_cmd)
+                        cmds.append ("mv " + title + '* ' + blockdir)
+                        # TODO: save plot to specific dir
+
+for cmd in cmds:
+    print (cmd)
