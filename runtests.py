@@ -14,9 +14,11 @@ RAID_CONFIGS = {
 
 ALPHABET = alphabets=[str(chr(ord('a')+i)) for i in range(26)]
 
+# this really isnt a static
+# TODO: change this to a parameter
 SKIP_ZFS_TESTS = False
 
-# parameters
+# Parameters
 startdisk_ = "c"
 numberdisks_ = 1
 zfsname_ = "tank"
@@ -194,7 +196,7 @@ if __name__ == "__main__":
 
     try:      
         # TODO: change skipnum
-        run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=6)
+        run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=8)
     except KeyboardInterrupt:
         print("\nControl-C pressed - quitting...")
         os.system("./clean.sh")

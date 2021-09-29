@@ -6,7 +6,7 @@ z1_three,24,5,3,12,,32m,off,1500g,False,NA,NA,NA,NA
 z2_one,15,6,0,12,,32m,off,800g,False,NA,NA,NA,NA
 z2_two,30,6,2,12,,32m,off,1600g,False,NA,NA,NA,NA
 z2_one_8_single,8,6,0,12,,32m,off,500g,True,200,16m 32m 64m,1 2 4,1 4 8
-z2_two_8_single,16,6,2,12,,32m,off,1000g,True,200,16m 32m 64m,2 2 4,1 4 8
-z2_three_8_single,24,6,3,12,,32m,off,1500g,True,200,16m 32m 64m,3 2 4,1 4 8
-z3_one_15_single,15,7,0,12,,32m,off,800g,True,200,16m 32m 64m,4 2 4,1 4 8
-z3_two_15_single,30,7,2,12,,32m,off,1600g,True,200,16m 32m 64m,5 2 4,1 4 8
+z2_two_8_single,16,6,2,12,,32m,off,1000g,True,200,16m 32m 64m,1 2 4,1 4 8
+z2_three_8_single,24,6,3,12,,32m,off,1500g,True,200,32m 64m,1 2,1 4
+z3_one_15_single,15,7,0,12,,32m,off,800g,True,200,32m 64m,1 2,1 4
+z3_two_15_single,30,7,2,12,,32m,off,1600g,True,200,32m 64m,1 2,1 4
