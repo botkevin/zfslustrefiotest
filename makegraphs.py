@@ -13,10 +13,11 @@ def make_plot_cmd(rw, fs, bs, iodepths, numjobs, testname):
     cmd = './fio-plot/fio_plot/fio_plot -T "' + title + '" -i z2_one_8_single_'+ fsdir +bs+' -g -r '+rw+' -t bw -d '+ iodepths +' -n ' + numjobs + '--disable-fio-version'
     return cmd, title
 
-with open(csvfilename) as csvfile:
+def make_commands():
+    cmds = []
+    with open(csvfilename) as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
         next(reader)
-        cmds = []
         for _ in range(skip_num):
             next(reader)
         for row in reader:
@@ -37,6 +38,9 @@ with open(csvfilename) as csvfile:
                         cmds.append (plot_cmd)
                         cmds.append ("mv " + title + '* ' + blockdir)
                         # TODO: save plot to specific dir
+    return cmds
 
-for cmd in cmds:
-    print (cmd)
+if __name__ == "__main__":
+    cmds = make_commands()
+    for cmd in cmds:
+        os.system (cmd)
