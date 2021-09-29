@@ -22,7 +22,7 @@ with open(csvfilename) as csvfile:
             rws = ["read", "write"]
             fss = ["zfs", "lustre"]
             blocksizes = blocksizes.split()
-            os.system ("mkdir " + testname)
+            os.system ("mkdir " + "graph_" + testname)
             for bs in blocksizes:
                 os.system ("mkdir bs")
                 for fs in fss:
