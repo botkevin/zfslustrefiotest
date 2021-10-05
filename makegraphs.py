@@ -6,9 +6,9 @@ skip_num = 6
 
 def make_plot_cmd(rw, fs, bs, iodepths, numjobs, testname):
     if fs == "zfs":
-        fsdir = '/lustre/lustre/'
+        fsdir = '_lustre/lustre/'
     else:
-        fsdir = '/zfs/tank/'
+        fsdir = '_zfs/tank/'
     title = 'bandwidth of '+ rw +' on ' + fs + ' ' + testname + ' '+bs
     cmd = './fio-plot/fio_plot/fio_plot -T "' + title + '" -i '+ testname + fsdir +bs+' -g -r '+rw+' -t bw -d '+ iodepths +' -n ' + numjobs + ' --disable-fio-version'
     return cmd, title
