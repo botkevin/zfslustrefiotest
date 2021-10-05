@@ -10,7 +10,7 @@ def make_plot_cmd(rw, fs, bs, iodepths, numjobs, testname):
     else:
         fsdir = '/zfs/tank/'
     title = 'bandwidth of '+ rw +' on ' + fs + ' ' + testname + ' '+bs
-    cmd = './fio-plot/fio_plot/fio_plot -T "' + title + '" -i '+ testname + fsdir +bs+' -g -r '+rw+' -t bw -d '+ iodepths +' -n ' + numjobs + '--disable-fio-version'
+    cmd = './fio-plot/fio_plot/fio_plot -T "' + title + '" -i '+ testname + fsdir +bs+' -g -r '+rw+' -t bw -d '+ iodepths +' -n ' + numjobs + ' --disable-fio-version'
     return cmd, title
 
 def make_commands():
