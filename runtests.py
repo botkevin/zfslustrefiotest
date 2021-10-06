@@ -31,8 +31,8 @@ raid0_ = 0
 # zfs-options
 ashift_ = "12"
 compression_ = None # this may or may not work with our datasets, perhaps we can try lz4
-recordsize_ = "32m"
-atime_ = "off"
+recordsize_ = "128k" # zfs default
+atime_ = "on" # zfs default
 
 testname_ = "onedisk"
 filesize_ = "100g"
@@ -46,12 +46,8 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
     cmdstr = "zpool create " + zfsname
 
     propertiesstr = " -o ashift="+ashift
-    # we will worry about recordsize and atime later
-    # each property has to have its own "-o"
-    # this doesnt seem to work anyways, we need to set with "zfs set"
-    #  + " recordsize="+recordsize + " atime="+atime
-    # if compression:
-    #     propertiesstr += " compression="+compression
+    # if use compression
+    #     propertiesstr += " -o compression="+compression
 
     disks = []
     start = ord(startdisk[-1]) - ord('a')
@@ -68,7 +64,8 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
     cmdstr += propertiesstr
     cmdstr += " " + raidmodestr
     cmdstr += disksstr
-    return cmdstr
+    options_cmd = 'zfs set recordsize='+recordsize + ' atime='+atime + ' ' + zfsname
+    return [cmdstr, options_cmd]
 
 # blocksizes, iodepths, and numjobs are just lists delimited by spaces ex: "1 2 3"
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
@@ -77,8 +74,6 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
         cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 --target " + dir + " -o "+store_dir+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime
         return [cmd]
     else:
-        # writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --runtime="+runtime+" --time_based --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
-        # readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --runtime="+runtime+" --time_based --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
         writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
         readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
         rmcmd = "rm "+ dir +"/throughput-test.0.0"
@@ -103,9 +98,10 @@ def make_lustre(zfsname, mgsmdtname="mgsmdt", ip="$(hostname)", protocol="tcp"):
     cmds.append("mkfs.lustre --backfstype=zfs --fsname=test --index=0 --reformat --mgs --mdt "+ mgsmdtname +"/mgsmdt") # mgsmdt should be static
     cmds.append("mkfs.lustre --backfstype=zfs --fsname=test --index=0 --ost --mgsnode="+ full_ip + " " + zfsname +"/ost0")
     # mount
-    cmds.append("mount -t lustre " + mgsmdtname +"/mgsmdt /mnt/mgsmdt")
-    cmds.append("mount -t lustre " + zfsname +"/ost0 /mnt/ost")
-    cmds.append("mount -t lustre " + full_ip + ":/test" + " /mnt/lustre")
+    lustre_mount = "mount -t lustre "
+    cmds.append(lustre_mount + mgsmdtname +"/mgsmdt /mnt/mgsmdt")
+    cmds.append(lustre_mount + zfsname +"/ost0 /mnt/ost")
+    cmds.append(lustre_mount + full_ip + ":/test" + " /mnt/lustre")
 
     # don't need this because its all mounted already. Should we remount? probably don't need to remount, but might as well... 
     # lustre client mount 
@@ -141,17 +137,14 @@ def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, comp
     cmds = []
     cmds.append ("mkdir " + testname)
     
-    # print_title ("make zfs")
     cmds.extend (make_echo("make zfs"))
-    cmds.append (make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime))
+    cmds.extend (make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime))
     
     # arugments to make_fio_througput: dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"
     if not SKIP_ZFS_TESTS:
-        # print_title ("test zfs")
         cmds.extend (make_echo("test zfs"))
         cmds.extend (make_fio_thruput(zfsdir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"))
 
-    # print_title ("make lustre")
     cmds.extend (make_echo("make lustre"))
     lustrecmds = make_lustre(zfsname, ip=ip)
     cmds.extend (lustrecmds)
@@ -193,10 +186,12 @@ if __name__ == "__main__":
     csvfilename = "config.csv"
     # TODO: change ip here
     ip = "192.168.169.207"
+    # TODO: change skip_num
+    skip_num = 11
 
     try:      
-        # TODO: change skipnum
-        run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=8)
+        run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=skip_num)
+    # this doesn't work... just use "pgrep python" then "kill -9 <PID>"
     except KeyboardInterrupt:
         print("\nControl-C pressed - quitting...")
         os.system("./clean.sh")
