@@ -49,7 +49,8 @@ if __name__ == "__main__":
     # TODO: skip_num to parameter
     skip_num = 11
     # TODO: stop to param
-    stop = 9
+    # set stop to 0 if you don't need it
+    stop = 0
     cmds = make_commands(skip_num, stop)
     for cmd in cmds:
         os.system (cmd)
