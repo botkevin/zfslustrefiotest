@@ -19,7 +19,11 @@ ALPHABET = alphabets=[str(chr(ord('a')+i)) for i in range(26)]
 SKIP_ZFS_TESTS = False
 
 # Parameters
+# not just examples, these are used in code, others are defaults that change based on config.csv
+# **********************
+ioengine_ = "psync"
 startdisk_ = "c"
+# **********************
 numberdisks_ = 1
 zfsname_ = "tank"
 raidmode_ = 0
@@ -71,11 +75,11 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
     if benchmark == "True":
         store_dir = testname+"_"+fs
-        cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 --target " + dir + " -o "+store_dir+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime
+        cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 --target " + dir + " -o "+store_dir+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime + " --ioengine "+ioengine_
         return [cmd]
     else:
-        writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
-        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine=libaio --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
+        writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
+        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
         rmcmd = "rm "+ dir +"/throughput-test.0.0"
         return writecmd, readcmd, rmcmd
 
