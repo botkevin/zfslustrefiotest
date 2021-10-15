@@ -23,7 +23,10 @@ SKIP_ZFS_TESTS = False
 # **********************
 ioengine_ = "psync"
 startdisk_ = "c"
+# there may be some glitches with loginterval < 1000
+loginterval_ = "1250"
 # **********************
+# rest are defaults that are not used
 numberdisks_ = 1
 zfsname_ = "tank"
 raidmode_ = 0
@@ -34,7 +37,7 @@ raid0_ = 0
 
 # zfs-options
 ashift_ = "12"
-compression_ = None # this may or may not work with our datasets, perhaps we can try lz4
+compression_ = None # this may or may not work with our datasets, perhaps we can try lz4 (no overhead)
 recordsize_ = "128k" # zfs default
 atime_ = "on" # zfs default
 
@@ -75,11 +78,14 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
     if benchmark == "True":
         store_dir = testname+"_"+fs
-        cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 --target " + dir + " -o "+store_dir+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime + " --ioengine "+ioengine_
+        options = "--target " + dir + " -o "+store_dir+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --ioengine "+ioengine_+" --loginterval "+loginterval_
+        cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 " + options
         return [cmd]
     else:
-        writecmd = "fio --directory="+ dir                     +" --direct=1 --rw=write --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 >> " + testname + "/" + fs + "_write.txt"
-        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 --direct=1 --rw=read --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1 --readonly >> " + testname + "/" + fs + "_read.txt"
+        # no benchmark is deprecated option
+        options = "--direct=1 --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1"
+        writecmd = "fio --directory="+ dir                          + options + " --rw=write >> " + testname + "/" + fs + "_write.txt"
+        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 " + options + "--rw=read --readonly >> " + testname + "/" + fs + "_read.txt"
         rmcmd = "rm "+ dir +"/throughput-test.0.0"
         return writecmd, readcmd, rmcmd
 
