@@ -2,6 +2,7 @@ import numpy as np
 import os
 import csv
 import sys
+import argparse
 
 # STATICS
 RAID_CONFIGS = {
@@ -191,16 +192,20 @@ def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0):
             raid0 = int(raid0)
             run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs)
 
-if __name__ == "__main__":
-    # TODO: use run_all
-    csvfilename = "config.csv"
-    # TODO: change ip here
-    ip = "192.168.169.207"
-    # TODO: change skip_num
-    skip_num = 10
+def get_args():
+    parser = argparse.ArgumentParser(description='run io tests from specified config')
+    parser.add_argument ('--csv', type=str, default='config.csv', dest='csvfilename')
+    parser.add_argument ('--ip', type=str, default='192.168.169.207', dest='ip')
+    parser.add_argument ('--skip_num', '-s', type=int, default=0, dest='skip_num')
+    args = parser.parse_args()
+    return args
 
-    try:      
-        run_all(startdisk_, zfsname_, csvfilename, ip, skip_num=skip_num)
+
+if __name__ == "__main__":
+    # skip_num is 11 for what we want 10/14
+    args = get_args()
+    try:
+        run_all(startdisk_, zfsname_, args.csvfilename, args.ip, skip_num=args.skip_num)
     # this doesn't work... just use "pgrep python" then "kill -9 <PID>"
     except KeyboardInterrupt:
         print("\nControl-C pressed - quitting...")

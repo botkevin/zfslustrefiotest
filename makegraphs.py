@@ -1,8 +1,6 @@
 import os
 import csv
 
-csvfilename = "config.csv"
-
 def make_plot_cmd(rw, fs, bs, iodepths, numjobs, testname, recordsize):
     if fs == "zfs":
         fsdir = '_lustre/lustre/'
@@ -14,7 +12,7 @@ def make_plot_cmd(rw, fs, bs, iodepths, numjobs, testname, recordsize):
     cmd = './fio-plot/fio_plot/fio_plot -T "' + title + '" -i '+ testname + fsdir +bs+' -g -r '+rw+' -t bw -d '+ iodepths +' -n ' + numjobs + ' --disable-fio-version'
     return cmd, title
 
-def make_commands(skip_num,stop=0):
+def make_commands(csvfilename, skip_num,stop=0):
     cmds = []
     with open(csvfilename) as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
@@ -45,12 +43,18 @@ def make_commands(skip_num,stop=0):
                 return cmds
     return cmds
 
+def get_args():
+    parser = argparse.ArgumentParser(description='run io tests from specified config')
+    parser.add_argument ('--csv', type=str, default='config.csv', dest='csvfilename')
+    parser.add_argument ('--skip_num', '-s', type=int, default=0, dest='skip_num')
+    args = parser.parse_args()
+    return args
+
 if __name__ == "__main__":
-    # TODO: skip_num to parameter
-    skip_num = 11
+    args = get_args()
     # TODO: stop to param
     # set stop to 0 if you don't need it
     stop = 0
-    cmds = make_commands(skip_num, stop)
+    cmds = make_commands(args.csvfilename, args.skip_num)
     for cmd in cmds:
         os.system (cmd)
