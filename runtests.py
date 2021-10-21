@@ -79,13 +79,13 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
     if benchmark == "FALSE":
         # no benchmark is deprecated option
-        options = " --direct=1 --bs=32m --engine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1"
+        options = " --direct=1 --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1"
         writecmd = "fio --directory="+ dir                          + options + " --rw=write >> " + testname + "/" + fs + "_write.txt"
         readcmd  = "fio --filename="+ dir + "/throughput-test.0.0" + options + "--rw=read --readonly >> " + testname + "/" + fs + "_read.txt"
         rmcmd = "rm "+ dir +"/throughput-test.0.0"
         return writecmd, readcmd, rmcmd
     else:
-        options = "--target " + dir + " -o "+testname+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --ioengine "+ioengine_+" --loginterval "+loginterval_
+        options = "--target " + dir + " -o "+testname+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --engine "+ioengine_+" --loginterval "+loginterval_
         cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 " + options
         return [cmd]
 

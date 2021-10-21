@@ -10,18 +10,18 @@ z2_two_8_single,16,6,2,12,,128k,on,1000g,TRUE,200,16m 32m 64m,2 4,1 4 8
 z2_three_8_single,24,6,3,12,,128k,on,1500g,TRUE,200,32m 64m,1 4,1 4
 z3_one_15_single,15,7,0,12,,128k,on,800g,TRUE,200,32m 64m,1 4,1 4
 z3_two_15_single,30,7,2,12,,128k,on,1600g,TRUE,200,32m 64m,1 4,1 4
-onedisk_128k,1,0,0,12,,128k,off,100g,TRUE,40,32m,1 2 4 8 16 32,1 2 4 8 16 32
-onedisk_1m,1,0,0,12,,1m,off,100g,TRUE,40,8m 16m 32m 64m,1 2 4 8 16 32,1 2 4 8 16 32
-twodisk,2,0,0,12,,1m,off,100g,TRUE,100,32m 64m,1 4,1 4
-fourdisk,4,0,0,12,,1m,off,100g,TRUE,100,32m 64m,1 4,1 4
-eightdisk,8,0,0,12,,1m,off,200g,TRUE,100,32m 64m,1 4,1 4
-sixteendisk,16,0,0,12,,1m,off,300g,TRUE,100,32m 64m,1 4,1 4
-z2_one_8_single_1m,8,6,0,12,,1m,off,250g,TRUE,100,32m 64m,1 4,1 4 8
-z2_two_8_single_1m,16,6,2,12,,1m,off,400g,TRUE,100,32m 64m,1 4,1 4 8
-z2_three_8_single_1m,24,6,3,12,,1m,off,700g,TRUE,100,32m 64m,1 2 4 8 16 32,1 2 4 8 16 32
-z3_one_15_single_1m,15,7,0,12,,1m,off,300g,TRUE,100,32m 64m,1 4,1 4
-z3_two_15_single_1m,30,7,2,12,,1m,off,600g,TRUE,100,32m 64m,1 2 4 8 16 32,1 2 4 8 16 32
-twodisk_1m,2,0,0,12,,1m,off,100g,TRUE,100,32m 64m,1 4,1 4
-fourdisk_1m,4,0,0,12,,1m,off,100g,TRUE,100,32m 64m,1 4,1 4
-eightdisk_1m,8,0,0,12,,1m,off,200g,TRUE,100,32m 64m,1 4,1 4
-sixteendisk_1m,16,0,0,12,,1m,off,300g,TRUE,100,32m 64m,1 4,1 4
+onedisk_128k,1,0,0,12,,128k,off,100g,TRUE,50,32m,1 2 4 8 16 32,1 2 4 8 16 32
+onedisk_1m,1,0,0,12,,1m,off,100g,TRUE,50,8m 16m 32m 64m,1 2 4 8 16 32,1 2 4 8 16 32
+twodisk,2,0,0,12,,1m,off,100g,TRUE,50,32m 64m,1 4,1 4
+fourdisk,4,0,0,12,,1m,off,100g,TRUE,50,32m 64m,1 4,1 4
+eightdisk,8,0,0,12,,1m,off,200g,TRUE,50,32m 64m,1 4,1 4
+sixteendisk,16,0,0,12,,1m,off,300g,TRUE,50,32m 64m,1 4,1 4
+z2_one_8_single_1m,8,6,0,12,,1m,off,250g,TRUE,50,32m 64m,1 4,1 4 8
+z2_two_8_single_1m,16,6,2,12,,1m,off,400g,TRUE,50,32m 64m,1 4,1 4 8
+z2_three_8_single_1m,24,6,3,12,,1m,off,700g,TRUE,50,32m 64m,1 2 4 8 16 32,1 2 4 8 16 32
+z3_one_15_single_1m,15,7,0,12,,1m,off,300g,TRUE,50,32m 64m,1 4,1 4
+z3_two_15_single_1m,30,7,2,12,,1m,off,600g,TRUE,50,32m 64m,1 2 4 8 16 32,1 2 4 8 16 32
+twodisk_1m,2,0,0,12,,1m,off,100g,TRUE,50,32m 64m,1 4,1 4
+fourdisk_1m,4,0,0,12,,1m,off,100g,TRUE,50,32m 64m,1 4,1 4
+eightdisk_1m,8,0,0,12,,1m,off,200g,TRUE,50,32m 64m,1 4,1 4
+sixteendisk_1m,16,0,0,12,,1m,off,300g,TRUE,50,32m 64m,1 4,1 4
