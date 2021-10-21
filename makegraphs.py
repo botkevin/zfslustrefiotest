@@ -1,11 +1,12 @@
 import os
 import csv
+import argparse
 
 def make_plot_cmd(rw, fs, bs, iodepths, numjobs, testname, recordsize):
     if fs == "zfs":
-        fsdir = '_lustre/lustre/'
+        fsdir = '/lustre/'
     else:
-        fsdir = '_zfs/tank/'
+        fsdir = '/tank/'
     title = 'bandwidth of '+ rw +' on ' + fs + ' ' + testname + ' '+bs
     if recordsize != '128k':
         title += recordsize

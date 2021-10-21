@@ -77,18 +77,17 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 
 # blocksizes, iodepths, and numjobs are just lists delimited by spaces ex: "1 2 3"
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
-    if benchmark == "True":
-        store_dir = testname+"_"+fs
-        options = "--target " + dir + " -o "+store_dir+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --ioengine "+ioengine_+" --loginterval "+loginterval_
-        cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 " + options
-        return [cmd]
-    else:
+    if benchmark == "FALSE":
         # no benchmark is deprecated option
-        options = "--direct=1 --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1"
+        options = " --direct=1 --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1"
         writecmd = "fio --directory="+ dir                          + options + " --rw=write >> " + testname + "/" + fs + "_write.txt"
-        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0 " + options + "--rw=read --readonly >> " + testname + "/" + fs + "_read.txt"
+        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0" + options + "--rw=read --readonly >> " + testname + "/" + fs + "_read.txt"
         rmcmd = "rm "+ dir +"/throughput-test.0.0"
         return writecmd, readcmd, rmcmd
+    else:
+        options = "--target " + dir + " -o "+testname+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --ioengine "+ioengine_+" --loginterval "+loginterval_
+        cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 " + options
+        return [cmd]
 
 # need to make sure that:
 # I don't know if this is needed? see 
