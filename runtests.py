@@ -95,13 +95,14 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o
                     fio = "fio" + options
 
-                    default_output = " --output=" + testname+"/outputs/" + fs
-                    writecmd = fio + " --rw=write"           + default_output +"_write.txt" + filesize_o
-                    readcmd  = fio + " --rw=read --readonly" + default_output +"_read.txt"
+                    identifier = fs + "/"+nj + "-"+bs + "-"+iodepth
+                    default_output = " --output=" + testname+"/outputs/"
+                    writecmd = fio + " --rw=write"           + default_output + identifier + "_write.txt"
+                    readcmd  = fio + " --rw=read --readonly" + default_output + identifier + "_read.txt"
 
                     # currently there is no option to save log files with specific path, so we move it
-                    mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs/" + fs + "_write.log"
-                    mvreadcmd = "mv agg-read_bw.log " + testname+"/bandwidth_logs/" + fs + "_read.log"
+                    mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs/" + identifier +"_write.log"
+                    mvreadcmd = "mv agg-read_bw.log " + testname+"/bandwidth_logs/" + identifier + "_read.log"
 
 
                     rmcmd = "rm -f "+ dir +"/*"
@@ -177,7 +178,11 @@ def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, comp
     mkdirtest = "mkdir " + testname    
     cmds.append (mkdirtest)
     cmds.append (mkdirtest+"/outputs")
+    cmds.append (mkdirtest+"/outputs/zfs")
+    cmds.append (mkdirtest+"/outputs/lustre")
     cmds.append (mkdirtest+"/bandwidth_logs")
+    cmds.append (mkdirtest+"/bandwidth_logs/zfs")
+    cmds.append (mkdirtest+"/bandwidth_logs/lustre")
     
     cmds.extend (make_echo("make zfs"))
     cmds.extend (make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime))
