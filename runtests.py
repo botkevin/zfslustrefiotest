@@ -202,12 +202,13 @@ def run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressio
         print (cmd)
         os.system(cmd)
 
-def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0):
+def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0, stop=0):
     with open(csvfilename) as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
         next(reader)
         for _ in range(skip_num):
             next(reader)
+        stop_counter = 0
         for row in reader:
             testname, numberdisks, raidmode, raid0, ashift, compression, recordsize, atime, filesize, benchmark, runtime, blocksizes, iodepths, numjobs = row
             print ("++++++++++++++++++++++++++++")
@@ -217,12 +218,16 @@ def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0):
             raidmode = int(raidmode)
             raid0 = int(raid0)
             run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs)
+            stop_counter += 1
+            if stop_counter == stop:
+                return
 
 def get_args():
     parser = argparse.ArgumentParser(description='run io tests from specified config')
     parser.add_argument ('--csv', type=str, default='config.csv', dest='csvfilename')
     parser.add_argument ('--ip', type=str, default='192.168.169.207', dest='ip')
     parser.add_argument ('--skip_num', '-s', type=int, default=0, dest='skip_num')
+    parser.add_argument ('--stop', type=int, default=0, dest='stop')
     args = parser.parse_args()
     return args
 
@@ -231,7 +236,7 @@ if __name__ == "__main__":
     # skip_num is 11 for what we want 10/14
     args = get_args()
     try:
-        run_all(startdisk_, zfsname_, args.csvfilename, args.ip, skip_num=args.skip_num)
+        run_all(startdisk_, zfsname_, args.csvfilename, args.ip, skip_num=args.skip_num, stop=args.stop)
     # this doesn't work... just use "pgrep python" then "kill -9 <PID>"
     except KeyboardInterrupt:
         print("\nControl-C pressed - quitting...")
