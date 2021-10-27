@@ -95,7 +95,7 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o
                     fio = "fio" + options
 
-                    identifier = fs + "/"+nj + "-"+bs + "-"+iodepth
+                    identifier = fs + "/"+nj + "-"+iodepth + "-"+bs 
                     default_output = " --output=" + testname+"/outputs/"
                     writecmd = fio + " --rw=write"           + default_output + identifier + "_write.txt" + filesize_o
                     readcmd  = fio + " --rw=read --readonly" + default_output + identifier + "_read.txt"
