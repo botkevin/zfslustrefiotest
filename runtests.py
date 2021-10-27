@@ -90,8 +90,9 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     nj_o = " --numjobs="+nj
                     runtime_o = " --runtime="+runtime
                     dir_o = " --directory="+ dir
+                    filesize_o = " --filesize="+ filesize
                     defaults_o = " --direct=1 --group_reporting --name=throughput-test --eta-newline=1 --time_based --bandwidth-log"
-                    options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o
+                    options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o + filesize_o
                     fio = "fio" + options
 
                     default_output = " --output=" + testname+"/outputs/" + fs
@@ -169,7 +170,11 @@ def print_title(msg):
 def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs):
     zfsdir = "/"+zfsname
     cmds = []
-    mkdirtest = "mkdir " + testname
+
+    # part of ghetto (1)
+    cmds.append ("mkdir tests")
+
+    mkdirtest = "mkdir " + testname    
     cmds.append (mkdirtest)
     cmds.append (mkdirtest+"/outputs")
     cmds.append (mkdirtest+"/bandwidth_logs")
@@ -211,6 +216,10 @@ def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0, stop=0):
         stop_counter = 0
         for row in reader:
             testname, numberdisks, raidmode, raid0, ashift, compression, recordsize, atime, filesize, benchmark, runtime, blocksizes, iodepths, numjobs = row
+            
+            # ghetto change so that all tests write to a folder called tests (1) instead of being all over the place
+            testname = "tests/"+testname
+
             print ("++++++++++++++++++++++++++++")
             print (testname)
             print ("++++++++++++++++++++++++++++")
