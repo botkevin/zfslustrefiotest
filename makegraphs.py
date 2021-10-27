@@ -48,6 +48,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='run io tests from specified config')
     parser.add_argument ('--csv', type=str, default='config.csv', dest='csvfilename')
     parser.add_argument ('--skip_num', '-s', type=int, default=0, dest='skip_num')
+    parser.add_argument ('--stop', type=int, default=0, dest='stop')
     args = parser.parse_args()
     return args
 
@@ -56,6 +57,6 @@ if __name__ == "__main__":
     # TODO: stop to param
     # set stop to 0 if you don't need it
     stop = 0
-    cmds = make_commands(args.csvfilename, args.skip_num)
+    cmds = make_commands(args.csvfilename, args.skip_num, args.stop)
     for cmd in cmds:
         os.system (cmd)

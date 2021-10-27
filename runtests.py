@@ -78,12 +78,36 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 # blocksizes, iodepths, and numjobs are just lists delimited by spaces ex: "1 2 3"
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
     if benchmark == "FALSE":
-        # no benchmark is deprecated option
-        options = " --direct=1 --bs=32m --ioengine="+ioengine_+" --iodepth=64 --filesize="+filesize+" --group_reporting --name=throughput-test --eta-newline=1"
-        writecmd = "fio --directory="+ dir                          + options + " --rw=write >> " + testname + "/" + fs + "_write.txt"
-        readcmd  = "fio --filename="+ dir + "/throughput-test.0.0" + options + "--rw=read --readonly >> " + testname + "/" + fs + "_read.txt"
-        rmcmd = "rm "+ dir +"/throughput-test.0.0"
-        return writecmd, readcmd, rmcmd
+        cmds = []
+        # benchmark is to toggle using fio-plot
+        # fio --directory=/tank --direct=1 --bs=32m --ioengine=psync --iodepth=1 --numjobs=32 --group_reporting --name=throughput-test --eta-newline=1 --rw=write --time_based --runtime 20 --bandwidth-log --output testoutput.txt 
+        for nj in numjobs.split(' '):
+            for bs in blocksizes.split(' '):
+                for iodepth in iodepths.split(' '):
+                    bs_o = " --bs="+bs
+                    ioeng_o = " --ioengine="+ioengine_
+                    iodepth_o = " --iodepth="+iodepth
+                    nj_o = " --numjobs="+nj
+                    runtime_o = " --runtime="+runtime
+                    dir_o = " --directory="+ dir
+                    defaults_o = " --direct=1 --group_reporting --name=throughput-test --eta-newline=1 --time_based --bandwidth-log"
+                    options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o
+                    fio = "fio" + options
+
+                    default_output = " --output=" + testname+"/outputs/" + fs
+                    writecmd = fio + " --rw=write"           + default_output +"_write.txt"
+                    readcmd  = fio + " --rw=read --readonly" + default_output +"_read.txt"
+
+                    # currently there is no option to save log files with specific path, so we move it
+                    mvreadcmd = "mv agg-read_bw.log " + testname+"/bandwidth_logs"
+                    mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs"
+
+
+                    rmcmd = "rm -f "+ dir +"/*"
+                    rmaggcmd = "rm -f agg-*"
+                    
+                    cmds.extend([writecmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd])
+        return cmds
     else:
         options = "--target " + dir + " -o "+testname+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --engine "+ioengine_+" --loginterval "+loginterval_
         cmd = "./bench_fio  --type directory --quiet -m write read --loops 1 " + options
@@ -145,7 +169,10 @@ def print_title(msg):
 def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime, testname, ip, filesize, benchmark, runtime, blocksizes, iodepths, numjobs):
     zfsdir = "/"+zfsname
     cmds = []
-    cmds.append ("mkdir " + testname)
+    mkdirtest = "mkdir " + testname
+    cmds.append (mkdirtest)
+    cmds.append (mkdirtest+"/outputs")
+    cmds.append (mkdirtest+"/bandwidth_logs")
     
     cmds.extend (make_echo("make zfs"))
     cmds.extend (make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime))
