@@ -97,7 +97,7 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
 
                     identifier = fs + "/"+nj + "-"+bs + "-"+iodepth
                     default_output = " --output=" + testname+"/outputs/"
-                    writecmd = fio + " --rw=write"           + default_output + identifier + "_write.txt"
+                    writecmd = fio + " --rw=write"           + default_output + identifier + "_write.txt" + filesize_o
                     readcmd  = fio + " --rw=read --readonly" + default_output + identifier + "_read.txt"
 
                     # currently there is no option to save log files with specific path, so we move it
