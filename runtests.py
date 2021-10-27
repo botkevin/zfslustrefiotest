@@ -110,6 +110,9 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     rmaggcmd = "rm -f agg-*"
                     
                     cmds.extend([writecmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd])
+        
+        # give some time for fio to finish until we proceed
+        cmds.append ("sleep 3")
         return cmds
     else:
         options = "--target " + dir + " -o "+testname+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --engine "+ioengine_+" --loginterval "+loginterval_
@@ -213,7 +216,7 @@ def run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressio
         print (cmd)
         os.system(cmd)
         # sleep to help...
-        time.sleep(5)
+        time.sleep(3)
 
 def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0, stop=0):
     with open(csvfilename) as csvfile:
