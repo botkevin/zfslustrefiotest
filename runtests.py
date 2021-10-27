@@ -3,6 +3,7 @@ import os
 import csv
 import sys
 import argparse
+import time
 
 # STATICS
 RAID_CONFIGS = {
@@ -211,6 +212,8 @@ def run_one(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressio
         # debug print
         print (cmd)
         os.system(cmd)
+        # sleep to help...
+        time.sleep(5)
 
 def run_all(startdisk, zfsname, csvfilename, ip, skip_num=0, stop=0):
     with open(csvfilename) as csvfile:
