@@ -52,7 +52,7 @@ runtime_ = "200"
 
 def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compression, recordsize, atime):
     raidmodestr = raidmode if type(raidmode)==str else RAID_CONFIGS[raidmode]
-    cmdstr = "zpool create " + zfsname
+    cmdstr = "zpool create " + zfsname + " -f"
 
     propertiesstr = " -o ashift="+ashift
     # if use compression
@@ -162,6 +162,7 @@ def clean(zfsname, mgsmdtname="mgsmdt", ip="$(hostname)", protocol="tcp"):
         cmds.append("tunefs.lustre --writeconf " + device)
     # zfs
     cmds.append ("zpool destroy -f "+ zfsname)
+    cmds.append ("rm -rf /"+zfsname)
     return cmds
     
 def make_echo(msg):
@@ -195,6 +196,7 @@ def make_commands(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, comp
     if not SKIP_ZFS_TESTS:
         cmds.extend (make_echo("test zfs"))
         cmds.extend (make_fio_thruput(zfsdir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"))
+    
 
     cmds.extend (make_echo("make lustre"))
     lustrecmds = make_lustre(zfsname, ip=ip)
