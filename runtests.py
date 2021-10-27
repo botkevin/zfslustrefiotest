@@ -91,7 +91,7 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     runtime_o = " --runtime="+runtime
                     dir_o = " --filename="+ dir +"/throughput-test"
                     filesize_o = " --filesize="+ filesize
-                    defaults_o = " --direct=1 --group_reporting --name=throughput-test --eta-newline=1 --time_based --bandwidth-log --eta never"
+                    defaults_o = " --direct=1 --group_reporting --name=throughput-test --eta-newline=1 --time_based --bandwidth-log"
                     options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o
                     fio = "fio" + options
 
@@ -100,8 +100,8 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     readcmd  = fio + " --rw=read --readonly" + default_output +"_read.txt"
 
                     # currently there is no option to save log files with specific path, so we move it
-                    mvreadcmd = "mv agg-read_bw.log " + testname+"/bandwidth_logs"
-                    mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs"
+                    mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs/" + fs + "_write.log"
+                    mvreadcmd = "mv agg-read_bw.log " + testname+"/bandwidth_logs/" + fs + "_read.log"
 
 
                     rmcmd = "rm -f "+ dir +"/*"
