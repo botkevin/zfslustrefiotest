@@ -98,8 +98,8 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
 
                     identifier = fs + "/"+nj + "-"+iodepth + "-"+bs 
                     default_output = " --output=" + testname+"/outputs/"
-                    writecmd = fio + " --rw=write" + default_output + identifier + "_write.txt"
-                    readcmd  = fio + " --rw=read"  + default_output + identifier + "_read.txt"
+                    writecmd = fio + " --rw=write" + default_output + identifier + "_write.txt" + "--name=throughput-write"
+                    readcmd  = fio + " --rw=read"  + default_output + identifier + "_read.txt" + "--name=throughput-read"
 
                     # currently there is no option to save log files with specific path, so we move it
                     mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs/" + identifier +"_write.log"
