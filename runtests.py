@@ -23,7 +23,7 @@ SKIP_ZFS_TESTS = False
 # Parameters
 # not just examples, these are used in code, others are defaults that change based on config.csv
 # **********************
-ioengine_ = "psync"
+ioengine_ = "libaio"
 startdisk_ = "c"
 # there may be some glitches with loginterval < 1000
 loginterval_ = "1250"
@@ -93,13 +93,13 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     dir_o = " --directory="+ dir
                     filesize_o = " --filesize="+ filesize
                     defaults_o = " --group_reporting --time_based --bandwidth-log"
-                    options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o + filesize_o
+                    options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o + filesize_o + " --name=throughput-test"
                     fio = "fio" + options
 
                     identifier = fs + "/"+nj + "-"+iodepth + "-"+bs 
                     default_output = " --output=" + testname+"/outputs/"
-                    writecmd = fio + " --rw=write" + default_output + identifier + "_write.txt" + " --name=throughput-write"
-                    readcmd  = fio + " --rw=read"  + default_output + identifier + "_read.txt" + " --name=throughput-read"
+                    writecmd = fio + " --rw=write" + default_output + identifier + "_write.txt"
+                    readcmd  = fio + " --rw=read"  + default_output + identifier + "_read.txt"
 
                     # currently there is no option to save log files with specific path, so we move it
                     mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs/" + identifier +"_write.log"
