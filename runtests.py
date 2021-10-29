@@ -93,7 +93,7 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     runtime_o = " --runtime="+runtime
                     dir_o = " --directory="+ dir
                     filesize_o = " --filesize="+ filesize
-                    defaults_o = " --direct=1 --group_reporting --time_based --bandwidth-log"
+                    defaults_o = " --direct=1 --group_reporting --time_based --bandwidth-log --buffer_compress_percentage=0 --refill_buffers"
                     options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o + filesize_o + " --name=throughput-test"
                     fio = "fio" + options
 
