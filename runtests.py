@@ -82,9 +82,9 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
         cmds = []
         # benchmark is to toggle using fio-plot
         # fio --directory=/tank --direct=1 --bs=32m --ioengine=psync --iodepth=1 --numjobs=32 --group_reporting --name=throughput-test --eta-newline=1 --rw=write --time_based --runtime 20 --bandwidth-log --output testoutput.txt 
-        for nj in numjobs.split(' '):
-            for bs in blocksizes.split(' '):
-                for iodepth in iodepths.split(' '):
+        for nj in numjobs.split():
+            for bs in blocksizes.split():
+                for iodepth in iodepths.split():
                     bs_o = " --bs="+bs
                     ioeng_o = " --ioengine="+ioengine_
                     iodepth_o = " --iodepth="+iodepth
@@ -92,7 +92,7 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     runtime_o = " --runtime="+runtime
                     dir_o = " --filename="+ dir +"/throughput-test"
                     filesize_o = " --filesize="+ filesize
-                    defaults_o = " --direct=1 --group_reporting --name=throughput-test --eta-newline=1 --time_based --bandwidth-log"
+                    defaults_o = " --group_reporting --name=throughput-test --eta-newline=1 --time_based --bandwidth-log"
                     options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o
                     fio = "fio" + options
 
