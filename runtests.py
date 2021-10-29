@@ -78,6 +78,7 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 
 # blocksizes, iodepths, and numjobs are just lists delimited by spaces ex: "1 2 3"
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
+    sleep = "sleep 2"
     if benchmark == "FALSE":
         cmds = []
         # benchmark is to toggle using fio-plot
@@ -109,10 +110,8 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     rmcmd = "rm -f "+ dir +"/*"
                     rmaggcmd = "rm -f agg-*"
                     
-                    cmds.extend([writecmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd])
+                    cmds.extend([writecmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd, sleep])
         
-        # give some time for fio to finish until we proceed
-        cmds.append ("sleep 3")
         return cmds
     else:
         options = "--target " + dir + " -o "+testname+" -b "+blocksizes+" --iodepth "+iodepths+" --numjobs "+numjobs+" --size "+filesize+" --runtime "+runtime+" --engine "+ioengine_+" --loginterval "+loginterval_

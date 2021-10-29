@@ -1,6 +1,5 @@
 testname,numberdisks,raidmode,raid0,ashift,compression,recordsize,atime,filesize,benchmark,runtime,blocksizes,iodepths,numjobs
-onedisk_128k,1,0,0,12,,128k,off,10g,FALSE,50,64m,1 2,1 4 8
-onedisk_1m,1,0,0,12,,1m,off,10g,FALSE,50,8m 16m 32m 64m,1 2 4 8 ,1 2 4 8 16 32
+onedisk_128k,1,0,0,12,,128k,off,10g,FALSE,50,64m,1,1 4 8
 z2_one_8_1m,8,6,0,12,,1m,off,10g,FALSE,50,64m,1 2,1 4 8
 z2_two_8_1m,16,6,2,12,,1m,off,10g,FALSE,50,64m,1 2,1 4 8
 z2_three_8_1m,24,6,3,12,,1m,off,10g,FALSE,50,32m 64m,1 2,1 2 4 8 16 32
@@ -10,3 +9,4 @@ twodisk_1m,2,0,0,12,,1m,off,10g,FALSE,50,64m,1 2,1 4
 fourdisk_1m,4,0,0,12,,1m,off,10g,FALSE,50,64m,1 2,1 4
 eightdisk_1m,8,0,0,12,,1m,off,10g,FALSE,50,64m,1 2,1 4
 sixteendisk_1m,16,0,0,12,,1m,off,10g,FALSE,50,64m,1 2,1 4
+onedisk_1m,1,0,0,12,,1m,off,10g,FALSE,50,8m 16m 32m 64m,1 2 4 8 ,1 2 4 8 16 32
