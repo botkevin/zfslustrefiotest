@@ -1,6 +1,7 @@
 import os
 import csv
 import argparse
+from numpy.core.fromnumeric import size
 import pandas
 import numpy as np
 from matplotlib import pyplot as plt
@@ -129,10 +130,27 @@ def gen_plots(csvfilename, skip_num,stop=0, save=True, gen_plt=True, test_dir="t
                 return figs_all, outputs_all, results_dict
     return figs_all, outputs_all, avgs_all, results_dict
 
-def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocksizes, iodepths, fs, rw, gen_plt=True, start=0):
-    testdir = parent_dir + "/" + testname
+# nj, io, bs
+def gen_test_mat(results_dict_test, numjobs, blocksizes, iodepths, start=0):
+    test_mat = np.zeros(shape=(len(numjobs), len(iodepths), len(blocksizes)))
+    for i, nj in enumerate(numjobs):
+        for j, iodepth in enumerate(iodepths):
+            for k, bs in enumerate(blocksizes):
+                log_data = results_dict_test[nj][iodepth][bs]
+                mean_data = np.mean(log_data[start:,1])
+                test_mat[i,j,k] = mean_data
+    return test_mat
 
+def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocksizes, iodepths, fs, rw, gen_plt=True, start=0, io_choose=None, bs_choose=None, nj_choose=None):
+    testdir = parent_dir + "/" + testname
     avgs = []
+    if io_choose:
+        iodepths = io_choose
+    if bs_choose:
+        blocksizes = bs_choose
+    if nj_choose:
+        numjobs = nj_choose
+
     if gen_plt:
         fig, ax = plt.subplots()
     else:
@@ -143,19 +161,19 @@ def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocks
         ax.set_xlabel("seconds")
         ax.set_ylabel("MB/s")
     # first layer is nj
-    for nj in numjobs.split():
-        for iodepth in iodepths.split():
-            for bs in blocksizes.split():
-                identifier = fs + "/"+nj + "-"+iodepth + "-"+bs 
+    for nj in numjobs:
+        for iodepth in iodepths:
+            for bs in blocksizes:
                 parent_dir = testdir+"/outputs/"
 
                 log_data = results_dict_test[nj][iodepth][bs]
 
                 # output data is now just data generated from the results_dict
                 mean_data = np.mean(log_data[start:,1])
-                avgs.append ("NJ:%s | IOD:%s | BS:%s"%(nj,iodepth,bs) + ": " + str(mean_data))
+                avgs.append ("NJ:%s | IOD:%s | BS:%s"%(nj,iodepth,bs) + " :: " + str(mean_data))
                 if gen_plt:
                     plot_data(nj, iodepth, bs, log_data, ax, start)
+
     if gen_plt:
         ax.legend(bbox_to_anchor=(1.0, 1.05))
     return fig, title, avgs
@@ -165,7 +183,7 @@ def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocks
 # avg_io set will plot iodepth=1 and will give the average thruput(over qd) as well as the average difference between IOs and standard deviation for the difference
 # bs will do the same this except with blocksize and plot bs=64m
 # also should do difference between zfs and lustre speeds
-def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, gen_plt=True, test_dir="tests", start=0, rw_choose=None, fs_choose=None, avg_io=False, graph_save_dir_prefix=""):
+def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, gen_plt=True, test_dir="tests", start=0, rw_choose=None, fs_choose=None, io_choose=None, bs_choose=None, nj_choose=None, graph_save_dir_prefix=""):
     if rw_choose:
         rws = rw_choose
     else:
@@ -175,7 +193,8 @@ def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, g
     else:
         fss = ["zfs", "lustre"]
     avgs_all = []
-    figs_all = []
+    figs_all = {}
+    mats_all = {}
     graph_save_dir =  graph_save_dir_prefix + "graphs/"
     if save: os.system ("mkdir " + graph_save_dir)
     with open(csvfilename) as csvfile:
@@ -186,13 +205,21 @@ def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, g
         stop_counter = 0
         for row in reader:
             testname, numberdisks, raidmode, raid0, ashift, compression, recordsize, atime, filesize, benchmark, runtime, blocksizes, iodepths, numjobs = row
+            numjobs, blocksizes, iodepths = numjobs.split(), blocksizes.split(), iodepths.split()
             graph_test_dir = graph_save_dir+testname
             if save: os.system ("mkdir " + graph_test_dir)
-            outputs_one_test = []
             for fs in fss:
                 for rw in rws:
-                    fig, title, avgs = make_plot_from_dict(results_dict[testname][fs][rw], test_dir, testname, numjobs, blocksizes, iodepths, fs, rw, gen_plt=gen_plt, start=start)
-                    figs_all.append(fig)
+                    fig, title, avgs = make_plot_from_dict(results_dict[testname][fs][rw], test_dir, testname, numjobs, blocksizes,iodepths, fs, rw, gen_plt, start, io_choose, bs_choose, nj_choose)
+                    figs_all[testname] = fig
+
+                    # nj, io, bs
+                    test_mat = gen_test_mat(results_dict[testname][fs][rw], numjobs, blocksizes, iodepths)
+                    mats_all[testname] = [test_mat, numjobs, iodepths, blocksizes]
+                    # avgs = np.mean(test_mat, axis=1)
+                    # stds = np.std(test_mat, axis=1)
+
+
                     if save:
                         save_name = title.replace(" ", "-")
                         fig.savefig(graph_test_dir+"/"+save_name)
@@ -200,10 +227,42 @@ def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, g
                         # fig.show()
                         pass
                     add_title(avgs, avgs_all, title)
+
+
+
             stop_counter += 1
             if stop_counter == stop:
                 return figs_all, avgs_all
-    return figs_all, avgs_all
+    return figs_all, avgs_all, mats_all
+
+# stat is what we want to compute over, ie (nj, io, bs)
+def comp_test_mat(test_mats, testname, stat):
+    stat_dict = {'nj':0, 'io':1, 'bs':2}
+    axis = stat_dict[stat]
+    entry = test_mats[testname]
+    # these are out statlists
+    mat = entry[0]
+    # numjobs = entry[1]
+    # iodepths = entry[2]
+    # blocksizes = entry[3]
+    avgs = np.mean(mat, axis=axis)
+    print (avgs.shape)
+    stds = np.std(mat, axis=axis)
+
+    info_arr = []
+    # I know this is disgusting but its just so I can iterate through 2 lists of my choosing by excluding one of (nj, io, bs)
+    stat_dict.pop(stat)
+    info_arr.append("Computing over " + stat)
+    stat_keys = list(stat_dict.keys())
+    stat_index1 = stat_dict[stat_keys[0]] + 1
+    stat_index2 = stat_dict[stat_keys[1]] + 1
+    for i, x in enumerate(entry[stat_index1]):
+        for j, y in enumerate(entry[stat_index2]):
+            avg = str(avgs[i,j])
+            std = str(stds[i,j])
+            info_arr.append ("%s:%s | %s:%s"%(stat_keys[0],x,stat_keys[1],y) + " :: " + "avg: %s | std:%s"%(avg, std))
+    return info_arr
+
 
 def print_info_arr(arr):
     for one_test in arr:
