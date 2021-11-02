@@ -5,6 +5,7 @@ from numpy.core.fromnumeric import size
 import pandas
 import numpy as np
 from matplotlib import pyplot as plt
+import scipy.stats as scistats
 
 def plot_data(nj, iodepth, bs, logdata, ax, start):
     logdata = logdata[start:,:]
@@ -246,6 +247,20 @@ def comp_test_mat(test_mats, testname, stat):
     # numjobs = entry[1]
     # iodepths = entry[2]
     # blocksizes = entry[3]
+    
+    title = "Computing over " + stat + ": " + str(entry[axis+1])
+    fig, ax = plt.subplots()
+    ax.set_title(title)
+    ax.set_xlabel(stat)
+    ax.set_ylabel("MB/s")
+
+    def gen_label_helper (stat_keys, avgs, stds, lin_arr, i, j, a, b):
+        avg = avgs[i,j]
+        std = stds[i,j]
+        slope = lin_arr[i,j,0]
+        r_val = lin_arr[i,j,2]
+        p_val = lin_arr[i,j,3]
+        return "%s:%s | %s:%s"%(stat_keys[0],a,stat_keys[1],b) + " || " + "avg: %1.1f | std:%1.1f | slope:%1.1f | rval:%1.1f | pval:%1.1f"%(avg, std, slope, r_val, p_val)
 
     stat_dict.pop(stat)
     stat_keys = list(stat_dict.keys())
@@ -255,11 +270,12 @@ def comp_test_mat(test_mats, testname, stat):
     stat_list2 = entry[stat_axis2 + 1]
 
     avgs = np.mean(mat, axis=axis)
-    print (avgs.shape)
     stds = np.std(mat, axis=axis)
 
-    # linear regression. Hold 2 stat constant and vary the other
-    # TODO: plot linear regression
+    # I know this is disgusting but its just so I can iterate through 2 lists of my choosing by excluding one of (nj, io, bs)
+    info_arr = []
+    info_arr.append(title)
+    
     lin_arr = np.zeros(shape=(len(stat_list1), len(stat_list1), 5))
     x = entry[axis+1]
     rearranged_mat = np.moveaxis(mat, [stat_axis1, stat_axis2], [0,1])
@@ -269,28 +285,18 @@ def comp_test_mat(test_mats, testname, stat):
     if axis==2:
         x = [small_x[:-1] for small_x in x]
     x = [int(small_x) for small_x in x]
-    for i in range(len(stat_list1)):
-        for j in range(len(stat_list2)):
+
+    for i, a in enumerate(stat_list1):
+        for j, b in enumerate(stat_list2):
             # iterate through axis that is not our test stat 
             y = rearranged_mat[i,j,:]
-            # print ("x, y:", x, y)
             # vals = slope, intercept, r_value, p_value, std_err
             vals = scistats.linregress (x,y)
-            print ( "- ", vals)
             lin_arr[i,j] = vals
-
-
-    info_arr = []
-    # I know this is disgusting but its just so I can iterate through 2 lists of my choosing by excluding one of (nj, io, bs)
-    info_arr.append("Computing over " + stat + ": " + str(entry[axis+1]))
-    for i, x in enumerate(stat_list1):
-        for j, y in enumerate(stat_list2):
-            avg = avgs[i,j]
-            std = stds[i,j]
-            slope = lin_arr[i,j,0]
-            r_val = lin_arr[i,j,2]
-            p_val = lin_arr[i,j,3]
-            info_arr.append ("%s:%s | %s:%s"%(stat_keys[0],x,stat_keys[1],y) + " || " + "avg: %1.1f | std:%1.1f | slope:%1.1f | rval:%1.1f | pval:%1.1f"%(avg, std, slope, r_val, p_val))
+            label = gen_label_helper(stat_keys, avgs, stds, lin_arr, i, j, a, b)
+            ax.plot (x, y, label=label)
+            info_arr.append (label)
+    ax.legend()
     return info_arr, lin_arr
 
 
