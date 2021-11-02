@@ -242,26 +242,56 @@ def comp_test_mat(test_mats, testname, stat):
     entry = test_mats[testname]
     # these are out statlists
     mat = entry[0]
+    # nj, io, bs = entry[stat_axis+1]
     # numjobs = entry[1]
     # iodepths = entry[2]
     # blocksizes = entry[3]
+
+    stat_dict.pop(stat)
+    stat_keys = list(stat_dict.keys())
+    stat_axis1 = stat_dict[stat_keys[0]]
+    stat_axis2 = stat_dict[stat_keys[1]]
+    stat_list1 = entry[stat_axis1 + 1]
+    stat_list2 = entry[stat_axis2 + 1]
+
     avgs = np.mean(mat, axis=axis)
     print (avgs.shape)
     stds = np.std(mat, axis=axis)
 
+    # linear regression. Hold 2 stat constant and vary the other
+    # TODO: plot linear regression
+    lin_arr = np.zeros(shape=(len(stat_list1), len(stat_list1), 5))
+    x = entry[axis+1]
+    rearranged_mat = np.moveaxis(mat, [stat_axis1, stat_axis2], [0,1])
+    # print ("mat, rearranged:", mat.shape, rearranged_mat.shape)
+    # print ("stat1: ", len(stat_list1))
+    # print ("stat2: ", len(stat_list2))
+    if axis==2:
+        x = [small_x[:-1] for small_x in x]
+    x = [int(small_x) for small_x in x]
+    for i in range(len(stat_list1)):
+        for j in range(len(stat_list2)):
+            # iterate through axis that is not our test stat 
+            y = rearranged_mat[i,j,:]
+            # print ("x, y:", x, y)
+            # vals = slope, intercept, r_value, p_value, std_err
+            vals = scistats.linregress (x,y)
+            print ( "- ", vals)
+            lin_arr[i,j] = vals
+
+
     info_arr = []
     # I know this is disgusting but its just so I can iterate through 2 lists of my choosing by excluding one of (nj, io, bs)
-    stat_dict.pop(stat)
-    info_arr.append("Computing over " + stat)
-    stat_keys = list(stat_dict.keys())
-    stat_index1 = stat_dict[stat_keys[0]] + 1
-    stat_index2 = stat_dict[stat_keys[1]] + 1
-    for i, x in enumerate(entry[stat_index1]):
-        for j, y in enumerate(entry[stat_index2]):
-            avg = str(avgs[i,j])
-            std = str(stds[i,j])
-            info_arr.append ("%s:%s | %s:%s"%(stat_keys[0],x,stat_keys[1],y) + " :: " + "avg: %s | std:%s"%(avg, std))
-    return info_arr
+    info_arr.append("Computing over " + stat + ": " + str(entry[axis+1]))
+    for i, x in enumerate(stat_list1):
+        for j, y in enumerate(stat_list2):
+            avg = avgs[i,j]
+            std = stds[i,j]
+            slope = lin_arr[i,j,0]
+            r_val = lin_arr[i,j,2]
+            p_val = lin_arr[i,j,3]
+            info_arr.append ("%s:%s | %s:%s"%(stat_keys[0],x,stat_keys[1],y) + " || " + "avg: %1.1f | std:%1.1f | slope:%1.1f | rval:%1.1f | pval:%1.1f"%(avg, std, slope, r_val, p_val))
+    return info_arr, lin_arr
 
 
 def print_info_arr(arr):
