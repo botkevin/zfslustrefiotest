@@ -27,7 +27,7 @@ ioengine_ = "psync"
 startdisk_ = "c"
 # there may be some glitches with loginterval < 1000
 loginterval_ = "1250"
-mem_ = "117gi"
+mem_ = "110gi"
 # **********************
 # rest are defaults that are not used
 numberdisks_ = 1
