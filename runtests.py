@@ -79,7 +79,7 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 
 # blocksizes, iodepths, and numjobs are just lists delimited by spaces ex: "1 2 3"
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
-    sleep = "sleep 2"
+    sleep = "sleep 5"
     rmcmd = "rm -f "+ dir +"/*"
     rmaggcmd = "rm -f agg-*"
     cacheclearcmd = "sync; echo 3 > /proc/sys/vm/drop_caches"
@@ -114,7 +114,7 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
 
                     
                     
-                    cmds.extend([cacheclearcmd, writecmd, cacheclearcmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd, sleep])
+                    cmds.extend([cacheclearcmd, writecmd, sleep, cacheclearcmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd, sleep])
         
         return cmds
     else:
