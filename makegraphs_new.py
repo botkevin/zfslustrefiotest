@@ -134,6 +134,7 @@ def gen_plots(csvfilename, skip_num,stop=0, save=True, gen_plt=True, test_dir="t
 # nj, io, bs
 def gen_test_mat(results_dict_test, numjobs, blocksizes, iodepths, start=0):
     test_mat = np.zeros(shape=(len(numjobs), len(iodepths), len(blocksizes)))
+    print ((len(numjobs), len(iodepths), len(blocksizes)))
     for i, nj in enumerate(numjobs):
         for j, iodepth in enumerate(iodepths):
             for k, bs in enumerate(blocksizes):
@@ -144,6 +145,7 @@ def gen_test_mat(results_dict_test, numjobs, blocksizes, iodepths, start=0):
 
 def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocksizes, iodepths, fs, rw, gen_plt=True, start=0, io_choose=None, bs_choose=None, nj_choose=None):
     testdir = parent_dir + "/" + testname
+    test_mat = np.zeros(shape=(len(numjobs), len(iodepths), len(blocksizes)))
     avgs = []
     if io_choose:
         iodepths = io_choose
@@ -162,9 +164,9 @@ def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocks
         ax.set_xlabel("seconds")
         ax.set_ylabel("MB/s")
     # first layer is nj
-    for nj in numjobs:
-        for iodepth in iodepths:
-            for bs in blocksizes:
+    for i, nj in enumerate(numjobs):
+        for j, iodepth in enumerate(iodepths):
+            for k, bs in enumerate(blocksizes):
                 parent_dir = testdir+"/outputs/"
 
                 log_data = results_dict_test[nj][iodepth][bs]
@@ -172,12 +174,14 @@ def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocks
                 # output data is now just data generated from the results_dict
                 mean_data = np.mean(log_data[start:,1])
                 avgs.append ("NJ:%s | IOD:%s | BS:%s"%(nj,iodepth,bs) + " :: " + str(mean_data))
+
+                test_mat[i,j,k] = mean_data
                 if gen_plt:
                     plot_data(nj, iodepth, bs, log_data, ax, start)
 
     if gen_plt:
         ax.legend(bbox_to_anchor=(1.0, 1.05))
-    return fig, title, avgs
+    return fig, title, avgs, test_mat
 
 # io depth is same as queue depth (qd)
 # TODO:
@@ -209,14 +213,18 @@ def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, g
             numjobs, blocksizes, iodepths = numjobs.split(), blocksizes.split(), iodepths.split()
             graph_test_dir = graph_save_dir+testname
             if save: os.system ("mkdir " + graph_test_dir)
+            fs_dict = {}
+            mats_all[testname] = fs_dict
             for fs in fss:
+                rw_dict = {}
+                fs_dict[fs] = rw_dict
                 for rw in rws:
-                    fig, title, avgs = make_plot_from_dict(results_dict[testname][fs][rw], test_dir, testname, numjobs, blocksizes,iodepths, fs, rw, gen_plt, start, io_choose, bs_choose, nj_choose)
+                    fig, title, avgs, test_mat = make_plot_from_dict(results_dict[testname][fs][rw], test_dir, testname, numjobs, blocksizes,iodepths, fs, rw, gen_plt, start, io_choose, bs_choose, nj_choose)
                     figs_all[testname] = fig
 
                     # nj, io, bs
-                    test_mat = gen_test_mat(results_dict[testname][fs][rw], numjobs, blocksizes, iodepths)
-                    mats_all[testname] = [test_mat, numjobs, iodepths, blocksizes]
+                    # test_mat = gen_test_mat(results_dict[testname][fs][rw], numjobs, blocksizes, iodepths)
+                    rw_dict[rw] = [test_mat, numjobs, iodepths, blocksizes]
                     # avgs = np.mean(test_mat, axis=1)
                     # stds = np.std(test_mat, axis=1)
 
@@ -237,10 +245,10 @@ def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, g
     return figs_all, avgs_all, mats_all
 
 # stat is what we want to compute over, ie (nj, io, bs)
-def comp_test_mat(test_mats, testname, stat):
+def comp_test_mat(test_mat, testname, stat):
     stat_dict = {'nj':0, 'io':1, 'bs':2}
     axis = stat_dict[stat]
-    entry = test_mats[testname]
+    entry = test_mat
     # these are out statlists
     mat = entry[0]
     # nj, io, bs = entry[stat_axis+1]
@@ -248,7 +256,7 @@ def comp_test_mat(test_mats, testname, stat):
     # iodepths = entry[2]
     # blocksizes = entry[3]
     
-    title = "Computing over " + stat + ": " + str(entry[axis+1])
+    title = testname +" computing over " + stat + ": " + str(entry[axis+1])
     fig, ax = plt.subplots()
     ax.set_title(title)
     ax.set_xlabel(stat)
@@ -296,7 +304,7 @@ def comp_test_mat(test_mats, testname, stat):
             label = gen_label_helper(stat_keys, avgs, stds, lin_arr, i, j, a, b)
             ax.plot (x, y, label=label)
             info_arr.append (label)
-    ax.legend()
+    ax.legend(bbox_to_anchor=(1.0, 1.05)) # bbox_to_anchor=(1.0, 1.05)
     return info_arr, lin_arr
 
 

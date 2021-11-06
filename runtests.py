@@ -27,6 +27,7 @@ ioengine_ = "psync"
 startdisk_ = "c"
 # there may be some glitches with loginterval < 1000
 loginterval_ = "1250"
+mem_ = "117gi"
 # **********************
 # rest are defaults that are not used
 numberdisks_ = 1
@@ -79,6 +80,9 @@ def make_zfs(startdisk, numberdisks, zfsname, raidmode, raid0, ashift, compressi
 # blocksizes, iodepths, and numjobs are just lists delimited by spaces ex: "1 2 3"
 def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, iodepths, numjobs, fs="zfs"):
     sleep = "sleep 2"
+    rmcmd = "rm -f "+ dir +"/*"
+    rmaggcmd = "rm -f agg-*"
+    cacheclearcmd = "sync; echo 3 > /proc/sys/vm/drop_caches"
     if benchmark == "FALSE":
         cmds = []
         # benchmark is to toggle using fio-plot
@@ -93,8 +97,9 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     runtime_o = " --runtime="+runtime
                     dir_o = " --directory="+ dir
                     filesize_o = " --filesize="+ filesize
-                    defaults_o = " --direct=1 --group_reporting --time_based --bandwidth-log --buffer_compress_percentage=0 --refill_buffers"
-                    options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o + filesize_o + " --name=throughput-test"
+                    mlock_o = " --lockmem=" + mem_
+                    defaults_o = " --direct=0 --group_reporting --time_based --bandwidth-log --buffer_compress_percentage=0 --refill_buffers"
+                    options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o + filesize_o + mlock_o + " --name=throughput-test"
                     fio = "fio" + options
 
                     identifier = fs + "/"+nj + "-"+iodepth + "-"+bs 
@@ -107,10 +112,9 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     mvreadcmd = "mv agg-read_bw.log " + testname+"/bandwidth_logs/" + identifier + "_read.log"
 
 
-                    rmcmd = "rm -f "+ dir +"/*"
-                    rmaggcmd = "rm -f agg-*"
                     
-                    cmds.extend([writecmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd, sleep])
+                    
+                    cmds.extend([cacheclearcmd, writecmd, cacheclearcmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd, sleep])
         
         return cmds
     else:
