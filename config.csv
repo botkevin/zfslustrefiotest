@@ -1,15 +1,15 @@
 testname,numberdisks,raidmode,raid0,ashift,compression,recordsize,atime,filesize,benchmark,runtime,blocksizes,iodepths,numjobs
-onedisk_128k,1,0,0,12,,128k,off,20g,FALSE,75,64m,1,1 2
-z2_one_8_1m,8,6,0,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8
-z2_two_8_1m,16,6,2,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8
-z2_three_8_1m,24,6,3,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8
-z2_four_8_1m,32,6,4,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8
-z2_five_8_1m,40,6,5,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8 16 32
-z3_one_15_1m,15,7,0,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8
-z3_two_15_1m,30,7,2,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8
-z3_three_15_1m,45,7,3,12,,1m,off,20g,FALSE,75,64m,1,1 2 4 8
-twodisk_1m,2,0,0,12,,1m,off,20g,FALSE,75,64m,1,1 2 4
-fourdisk_1m,4,0,0,12,,1m,off,20g,FALSE,75,64m,1,1 2 4
-eightdisk_1m,8,0,0,12,,1m,off,20g,FALSE,75,64m,1,1 2 4
-sixteendisk_1m,16,0,0,12,,1m,off,20g,FALSE,75,64m,1,1 2 4
-onedisk_1m,1,0,0,12,,1m,off,20g,FALSE,75,8m 16m 32m 64m,1 2 4 8 ,1 2 4 8 16 32
+onedisk_128k,1,0,0,12,,128k,off,100g,FALSE,100,64m,1,1 2
+z2_one_8_1m,8,6,0,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8
+z2_two_8_1m,16,6,2,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8
+z2_three_8_1m,24,6,3,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8
+z2_four_8_1m,32,6,4,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8
+z2_five_8_1m,40,6,5,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8 16 32
+z3_one_15_1m,15,7,0,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8
+z3_two_15_1m,30,7,2,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8
+z3_three_15_1m,45,7,3,12,,1m,off,100g,FALSE,100,64m,1,1 2 4 8
+twodisk_1m,2,0,0,12,,1m,off,100g,FALSE,100,64m,1,1 2 4
+fourdisk_1m,4,0,0,12,,1m,off,100g,FALSE,100,64m,1,1 2 4
+eightdisk_1m,8,0,0,12,,1m,off,100g,FALSE,100,64m,1,1 2 4
+sixteendisk_1m,16,0,0,12,,1m,off,100g,FALSE,100,64m,1,1 2 4
+onedisk_1m,1,0,0,12,,1m,off,100g,FALSE,100,8m 16m 32m 64m,1 2 4 8 ,1 2 4 8 16 32

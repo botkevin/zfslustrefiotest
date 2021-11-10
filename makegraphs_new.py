@@ -9,7 +9,7 @@ import scipy.stats as scistats
 
 def plot_data(nj, iodepth, bs, logdata, ax, start):
     logdata = logdata[start:,:]
-    mean = np.mean(logdata[:,1])
+    mean = np.nanmean(logdata[:,1])
     ax.plot(*logdata.T, label="NJ:%s | IOD:%s | BS:%s || mean:%s"%(nj,iodepth,bs,str(mean)))
 
 def read_log(logfn):
@@ -18,9 +18,22 @@ def read_log(logfn):
         logdata = pandas.read_csv(logfn)
     except:
         print ("Missing: " + logfn)
-        raise Exception()
+        return np.zeros(shape=(100,2))
     logdata = logdata.to_numpy().astype(float)
     logdata = logdata[:,:2]
+
+    # trim leading and ending zeros
+    def np_trim_zeros_2d(arr):
+        def find_first_zero(arr):
+            for i,a in enumerate(arr[:,1]):
+                if a != 0:
+                    return i
+            return 0
+        start = find_first_zero(arr) + 1
+        end = arr.shape[0] - find_first_zero(arr[::-1,:]) - 1
+        return arr[start:end,:]
+    logdata = np_trim_zeros_2d(logdata)
+
 
     logdata /= 1000 # from millisecond to seconds and KiB/s to MiB/s
     logdata[:,1] *= 1.04858 # from MiB to MB
@@ -64,10 +77,13 @@ def make_plot(parent_dir, testname, numjobs, blocksizes, iodepths, fs, rw, gen_p
                 bs_dict[bs] = log_data
 
                 output_path = parent_dir + identifier + "_"+rw+".txt"
-                with open(output_path, 'r') as f:
-                    last_line = f.readlines()[-1]
-                    outputs.append ("NJ:%s | IOD:%s | BS:%s"%(nj,iodepth,bs) + last_line)
-                mean_data = np.mean(log_data[start:,1])
+                try:
+                    with open(output_path, 'r') as f:
+                        last_line = f.readlines()[-1]
+                        outputs.append ("NJ:%s | IOD:%s | BS:%s"%(nj,iodepth,bs) + last_line)
+                except:
+                    pass
+                mean_data = np.nanmean(log_data[start:,1])
                 avgs.append ("NJ:%s | IOD:%s | BS:%s"%(nj,iodepth,bs) + ": " + str(mean_data))
                 
                 if gen_plt:
@@ -139,7 +155,7 @@ def gen_test_mat(results_dict_test, numjobs, blocksizes, iodepths, start=0):
         for j, iodepth in enumerate(iodepths):
             for k, bs in enumerate(blocksizes):
                 log_data = results_dict_test[nj][iodepth][bs]
-                mean_data = np.mean(log_data[start:,1])
+                mean_data = np.nanmean(log_data[start:,1])
                 test_mat[i,j,k] = mean_data
     return test_mat
 
@@ -172,7 +188,7 @@ def make_plot_from_dict(results_dict_test, parent_dir, testname, numjobs, blocks
                 log_data = results_dict_test[nj][iodepth][bs]
 
                 # output data is now just data generated from the results_dict
-                mean_data = np.mean(log_data[start:,1])
+                mean_data = np.nanmean(log_data[start:,1])
                 avgs.append ("NJ:%s | IOD:%s | BS:%s"%(nj,iodepth,bs) + " :: " + str(mean_data))
 
                 test_mat[i,j,k] = mean_data
@@ -225,8 +241,8 @@ def gen_plots_from_dict(results_dict, csvfilename, skip_num,stop=0, save=True, g
                     # nj, io, bs
                     # test_mat = gen_test_mat(results_dict[testname][fs][rw], numjobs, blocksizes, iodepths)
                     rw_dict[rw] = [test_mat, numjobs, iodepths, blocksizes]
-                    # avgs = np.mean(test_mat, axis=1)
-                    # stds = np.std(test_mat, axis=1)
+                    # avgs = np.nanmean(test_mat, axis=1)
+                    # stds = np.nanstd(test_mat, axis=1)
 
 
                     if save:
@@ -277,8 +293,8 @@ def comp_test_mat(test_mat, testname, stat):
     stat_list1 = entry[stat_axis1 + 1]
     stat_list2 = entry[stat_axis2 + 1]
 
-    avgs = np.mean(mat, axis=axis)
-    stds = np.std(mat, axis=axis)
+    avgs = np.nanmean(mat, axis=axis)
+    stds = np.nanstd(mat, axis=axis)
 
     # I know this is disgusting but its just so I can iterate through 2 lists of my choosing by excluding one of (nj, io, bs)
     info_arr = []
