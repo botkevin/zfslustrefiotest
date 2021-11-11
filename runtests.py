@@ -27,7 +27,8 @@ ioengine_ = "psync"
 startdisk_ = "c"
 # there may be some glitches with loginterval < 1000
 loginterval_ = "1250"
-mem_ = "80gi"
+# mem_ is memory to be locked in gib
+mem_ = 100
 # **********************
 # rest are defaults that are not used
 numberdisks_ = 1
@@ -97,24 +98,22 @@ def make_fio_thruput(dir, testname, filesize, benchmark, runtime, blocksizes, io
                     runtime_o = " --runtime="+runtime
                     dir_o = " --directory="+ dir
                     filesize_o = " --filesize="+ filesize
-                    mlock_o = " --lockmem=" + mem_
+                    mem_val = int(mem_/int(nj))
+                    mlock_o = " --lockmem=" + str(mem_val)+"gi"
                     defaults_o = " --direct=0 --group_reporting --time_based --bandwidth-log --buffer_compress_percentage=0 --refill_buffers"
                     options = defaults_o + bs_o + ioeng_o + iodepth_o + nj_o + runtime_o + dir_o + filesize_o + " --name=throughput-test"
                     fio = "fio" + options
 
                     identifier = fs + "/"+nj + "-"+iodepth + "-"+bs 
-                    default_output = " --output=" + testname+"/outputs/"
-                    writecmd = fio + " --rw=write" + default_output + identifier + "_write.txt"
-                    readcmd  = fio + " --rw=read"  + default_output + mlock_o + identifier + "_read.txt"
+                    default_output = " --output=" + testname+"/outputs/" + identifier
+                    writecmd = fio + " --rw=write" + default_output + "_write.txt"
+                    readcmd  = fio + " --rw=read" + mlock_o + default_output + "_read.txt"
 
                     # currently there is no option to save log files with specific path, so we move it
                     mvwritecmd = "mv agg-write_bw.log " + testname+"/bandwidth_logs/" + identifier +"_write.log"
                     mvreadcmd = "mv agg-read_bw.log " + testname+"/bandwidth_logs/" + identifier + "_read.log"
 
-
-                    
-                    
-                    cmds.extend([cacheclearcmd, writecmd, sleep, cacheclearcmd, mvwritecmd, rmaggcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd, sleep])
+                    cmds.extend([cacheclearcmd, writecmd, mvwritecmd, rmaggcmd, sleep, cacheclearcmd, readcmd, mvreadcmd, rmaggcmd, rmcmd, sleep])
         
         return cmds
     else:
